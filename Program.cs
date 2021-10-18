@@ -186,7 +186,7 @@ namespace unified_taxonomy
                 BuildProductToMsProdSheet(workbook, unified);
                 BuildProductToMsServiceSheet(workbook, unified);
                 BuildUnifiedSimpleSheet(workbook, unified);
-                BuildUnmappedSheet(workbook, unmapped);
+                BuildUnifiedUnmappedSheet(workbook, unmapped);
 
                 workbook.SaveAs($"UnifiedTaxonomy-{String.Format("{0:yyyy-MM-dd}", DateTime.Now)}.xlsx");
             }
@@ -396,66 +396,81 @@ namespace unified_taxonomy
             FormatWorksheet(worksheet);
         }
 
+        struct UnmappedEntry
+        {
+            public IEnumerable<string> Items { get; init; }
+            public int StartColumn { get; init; }
+
+            public UnmappedEntry(string item, int column)
+            {
+                Items = new List<string>() { item };
+                StartColumn = column;
+            }
+
+            public UnmappedEntry(string[] items, int startColumn)
+            {
+                Items = items.ToList();
+                StartColumn = startColumn;
+            }
+
+            public static int Compare(UnmappedEntry e1, UnmappedEntry e2) => CompareSequences(e1.Items.GetEnumerator(), e2.Items.GetEnumerator());
+
+            static int CompareSequences(IEnumerator<string> e1, IEnumerator<string> e2)
+            {
+                int c = 0;
+                if (e1.MoveNext() && e2.MoveNext())
+                {
+                    c = e1.Current.CompareTo(e2.Current);
+                    if (c == 0)
+                    {
+                        return CompareSequences(e1, e2);
+                    }
+                }
+                return c;
+            }
+        }
+
         // Unmapped, Active
-        static void BuildUnmappedSheet(XLWorkbook workbook, Taxonomy unmapped)
+        static void BuildUnifiedUnmappedSheet(XLWorkbook workbook, Taxonomy unmapped)
         {
             var worksheet = workbook.Worksheets.Add("Unmapped (Active)");
 
             string[] columns = { "Product slug", "ms.prod", "ms.service", "ms.subservice" };
             AddHeaderRow(worksheet, columns);
 
-            var products = unmapped.Products
+            // Mark
+            List<UnmappedEntry> entries = new();
+
+            entries.AddRange(unmapped.Products
                 .Select(p => p.Slug)
                 .Distinct()
-                .ToList();
-            products.Sort();
+                .Select(slug => new UnmappedEntry(slug, 1)));
 
-            var msProds = unmapped.MsProds
+            entries.AddRange(unmapped.MsProds
                 .Where(p => p.Active)
                 .Select(p => p.MsProduct)
                 .Distinct()
-                .ToList();
-            msProds.Sort();
+                .Select(msProduct => new UnmappedEntry(msProduct, 2)));
 
-            var msServices = unmapped.MsServices
-                .Where(s => s.Active && string.IsNullOrEmpty(s.MsSubService))
-                .Select(s => s.MsService_)
+            entries.AddRange(unmapped.MsServices
+                .Where(s => s.Active)
+                .Select(s => new string[] { s.MsService_, s.MsSubService ?? string.Empty })
                 .Distinct()
-                .ToList();
-            msServices.Sort();
+                .Select(items => new UnmappedEntry(items, 3)));
 
-            var msSubServices = unmapped.MsServices
-                .Where(s => s.Active && !string.IsNullOrEmpty(s.MsSubService))
-                .Select(s => s.MsSubService)
-                .Distinct()
-                .ToList();
-            msSubServices.Sort();
+            entries.Sort(UnmappedEntry.Compare);
 
+            // Sweep
 
-            int index;
-            
-            index = 2;
-            foreach (var product in products)
+            int index = 2;
+            foreach (var entry in entries)
             {
-                worksheet.Cell(index, 1).Value = product;
-                index++;
-            }
-            index = 2;
-            foreach (var prod in msProds)
-            {
-                worksheet.Cell(index, 2).Value = prod;
-                index++;
-            }
-            index = 2;
-            foreach (var service in msServices)
-            {
-                worksheet.Cell(index, 3).Value = service;
-                index++;
-            }
-            index = 2;
-            foreach (var subService in msSubServices)
-            {
-                worksheet.Cell(index, 4).Value = subService;
+                int column = entry.StartColumn;
+                foreach (var item in entry.Items)
+                {
+                    worksheet.Cell(index, column).Value = item;
+                    column++;
+                }
                 index++;
             }
 
