@@ -85,20 +85,20 @@ namespace unified_taxonomy
 
             // Try mapping product slug to ms.product.
             string productSlug = product.Slug;
-            results.AddRange(msProds.Where(prod => prod.MsProduct == productSlug));
+            results.AddRange(msProds.Where(prod => string.Equals(prod.MsProduct, productSlug, StringComparison.CurrentCultureIgnoreCase)));
             var productSlugNoAzure = productSlug.Replace("azure-", string.Empty);
             if (productSlugNoAzure != productSlug)
             {
-                results.AddRange(msProds.Where(prod => prod.MsProduct == productSlugNoAzure));
+                results.AddRange(msProds.Where(prod => string.Equals(prod.MsProduct, productSlugNoAzure, StringComparison.CurrentCultureIgnoreCase)));
             }
 
             // Try matching labels.
             string label = product.Label;
-            results.AddRange(msProds.Where(prod => prod.Product == label));
+            results.AddRange(msProds.Where(prod => string.Equals(prod.Product, label, StringComparison.CurrentCultureIgnoreCase)));
             var labelNoAzure = label.Replace("Azure ", string.Empty);
             if (labelNoAzure != label)
             {
-                results.AddRange(msProds.Where(prod => prod.Product == labelNoAzure));
+                results.AddRange(msProds.Where(prod => string.Equals(prod.Product, labelNoAzure, StringComparison.CurrentCultureIgnoreCase)));
             }
 
             return results;
@@ -110,20 +110,20 @@ namespace unified_taxonomy
 
             // Try mapping product slug to ms.product.
             string productSlug = product.Slug;
-            results.AddRange(msServices.Where(service => service.MsService_ == productSlug));
+            results.AddRange(msServices.Where(service => string.Equals(service.MsService_, productSlug, StringComparison.CurrentCultureIgnoreCase)));
             var productSlugNoAzure = productSlug.Replace("azure-", string.Empty);
             if (productSlugNoAzure != productSlug)
             {
-                results.AddRange(msServices.Where(service => service.MsService_ == productSlugNoAzure));
+                results.AddRange(msServices.Where(service => string.Equals(service.MsService_, productSlugNoAzure, StringComparison.CurrentCultureIgnoreCase)));
             }
 
             // Try matching labels.
             string label = product.Label;
-            results.AddRange(msServices.Where(service => service.Service == label));
+            results.AddRange(msServices.Where(service => string.Equals(service.Service, label, StringComparison.CurrentCultureIgnoreCase)));
             var labelNoAzure = label.Replace("Azure ", string.Empty);
             if (labelNoAzure != label)
             {
-                results.AddRange(msServices.Where(service => service.Service == labelNoAzure));
+                results.AddRange(msServices.Where(service => string.Equals(service.Service, labelNoAzure, StringComparison.CurrentCultureIgnoreCase)));
             }
 
             return results;
@@ -135,20 +135,20 @@ namespace unified_taxonomy
 
             // Try mapping product slug to ms.product.
             string productSlug = product.Slug;
-            results.AddRange(msServices.Where(service => service.MsSubService == productSlug));
+            results.AddRange(msServices.Where(service => string.Equals(service.MsSubService, productSlug, StringComparison.CurrentCultureIgnoreCase)));
             var productSlugNoAzure = productSlug.Replace("azure-", string.Empty);
             if (productSlugNoAzure != productSlug)
             {
-                results.AddRange(msServices.Where(service => service.MsSubService == productSlugNoAzure));
+                results.AddRange(msServices.Where(service => string.Equals(service.MsSubService, productSlugNoAzure, StringComparison.CurrentCultureIgnoreCase)));
             }
 
             // Try matching labels.
             string label = product.Label;
-            results.AddRange(msServices.Where(service => service.MsSubService == label));
+            results.AddRange(msServices.Where(service => string.Equals(service.MsSubService, label, StringComparison.CurrentCultureIgnoreCase)));
             var labelNoAzure = label.Replace("Azure ", string.Empty);
             if (labelNoAzure != label)
             {
-                results.AddRange(msServices.Where(service => service.MsSubService == labelNoAzure));
+                results.AddRange(msServices.Where(service => string.Equals(service.MsSubService, labelNoAzure, StringComparison.CurrentCultureIgnoreCase)));
             }
 
             return results;
