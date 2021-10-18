@@ -58,13 +58,11 @@ namespace unified_taxonomy
 
                 foreach (var service in result.MsServices)
                 {
-                    int r = unmapped.MsServices.RemoveAll(s => s.Id == service.Id);
-                    //System.Diagnostics.Debug.Assert(r == 1);
+                    unmapped.MsServices.RemoveAll(s => s.Id == service.Id);
                 }
                 foreach (var prod in result.MsProds)
                 {
-                    int r = unmapped.MsProds.RemoveAll(p => p.Id == prod.Id);
-                    //System.Diagnostics.Debug.Assert(r == 1);
+                    unmapped.MsProds.RemoveAll(p => p.Id == prod.Id);
                 }
                 if (result.MsServices.Count() > 0 || result.MsProds.Count() > 0)
                 {
@@ -73,7 +71,6 @@ namespace unified_taxonomy
                 }
 
                 results.Add(result);
-                //Console.WriteLine(product.Label);
             }
 
             return results;
@@ -144,6 +141,56 @@ namespace unified_taxonomy
 
             // Try matching labels.
             string label = product.Label;
+            results.AddRange(msServices.Where(service => string.Equals(service.MsSubService, label, StringComparison.CurrentCultureIgnoreCase)));
+            var labelNoAzure = label.Replace("Azure ", string.Empty);
+            if (labelNoAzure != label)
+            {
+                results.AddRange(msServices.Where(service => string.Equals(service.MsSubService, labelNoAzure, StringComparison.CurrentCultureIgnoreCase)));
+            }
+
+            return results;
+        }
+
+        static IEnumerable<MsService> MapMsProdToServices(MsProd msProd, IEnumerable<MsService> msServices)
+        {
+            List<MsService> results = new();
+
+            // Try mapping product slug to ms.product.
+            string productSlug = msProd.MsProduct;
+            results.AddRange(msServices.Where(service => string.Equals(service.MsService_, productSlug, StringComparison.CurrentCultureIgnoreCase)));
+            var productSlugNoAzure = productSlug.Replace("azure-", string.Empty);
+            if (productSlugNoAzure != productSlug)
+            {
+                results.AddRange(msServices.Where(service => string.Equals(service.MsService_, productSlugNoAzure, StringComparison.CurrentCultureIgnoreCase)));
+            }
+
+            // Try matching labels.
+            string label = msProd.Product;
+            results.AddRange(msServices.Where(service => string.Equals(service.Service, label, StringComparison.CurrentCultureIgnoreCase)));
+            var labelNoAzure = label.Replace("Azure ", string.Empty);
+            if (labelNoAzure != label)
+            {
+                results.AddRange(msServices.Where(service => string.Equals(service.Service, labelNoAzure, StringComparison.CurrentCultureIgnoreCase)));
+            }
+
+            return results;
+        }
+
+        static IEnumerable<MsService> MapMsProdToMsSubServices(MsProd msProd, IEnumerable<MsService> msServices)
+        {
+            List<MsService> results = new();
+
+            // Try mapping product slug to ms.product.
+            string msProduct = msProd.MsProduct;
+            results.AddRange(msServices.Where(service => string.Equals(service.MsSubService, msProduct, StringComparison.CurrentCultureIgnoreCase)));
+            var productSlugNoAzure = msProduct.Replace("azure-", string.Empty);
+            if (productSlugNoAzure != msProduct)
+            {
+                results.AddRange(msServices.Where(service => string.Equals(service.MsSubService, productSlugNoAzure, StringComparison.CurrentCultureIgnoreCase)));
+            }
+
+            // Try matching labels.
+            string label = msProd.Product;
             results.AddRange(msServices.Where(service => string.Equals(service.MsSubService, label, StringComparison.CurrentCultureIgnoreCase)));
             var labelNoAzure = label.Replace("Azure ", string.Empty);
             if (labelNoAzure != label)
